@@ -1,14 +1,15 @@
-#[derive(Debug, PartialEq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Atom {
     Nil,
+    Define,
     Symbol(String),
 }
 
-#[derive(Debug, PartialEq, Hash)]
+#[derive(Clone, Debug, PartialEq, Hash)]
 pub enum Token {
     Atom(Atom),
     Lparen,
     Rparen,
-    Illegal,
+    Illegal(char),
     EOF,
 }

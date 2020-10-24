@@ -1,18 +1,27 @@
-mod token;
+pub mod token;
+
+use std::collections::HashMap;
 
 pub struct Lexer<'a> {
     input: &'a [u8],
     start: usize,
     end: usize,
+    keywords: HashMap<String, token::Atom>,
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a std::string::String) -> Lexer<'a> {
         let bytes = input.as_bytes();
+        let mut keywords: HashMap<String, token::Atom> = HashMap::new();
+
+        keywords.insert(String::from("nil"), token::Atom::Nil);
+        keywords.insert(String::from("define"), token::Atom::Define);
+
         Lexer {
             input: bytes,
             start: 0,
             end: 0,
+            keywords: keywords,
         }
     }
 
@@ -46,7 +55,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn read_symbol(&mut self, c: char) -> Option<token::Atom> {
-        let mut string = format!("{}", c);
+        let mut string = c.to_string();
         while let Some(c) = self.read_char() {
             let c = c as char;
             if !Lexer::is_subsequent(c) {
@@ -55,10 +64,11 @@ impl<'a> Lexer<'a> {
             }
             string.push(c);
         }
-        if string.to_lowercase() == "nil" {
-            return Some(token::Atom::Nil)
+
+        match self.keywords.get(&string.to_lowercase()) {
+            Some(token) => Some(token.clone()),
+            None => Some(token::Atom::Symbol(string)),
         }
-        Some(token::Atom::Symbol(string))
     }
 
     fn read_char(&mut self) -> Option<u8> {
@@ -76,15 +86,18 @@ impl<'a> Lexer<'a> {
 impl<'a> Iterator for Lexer<'a> {
     type Item = token::Token;
 
-    fn next(&mut self) -> Option<token::Token> {
+    fn next(&mut self) -> Option<Self::Item> {
         match self.read_char() {
             Some(c) => match c as char {
                 skip if (skip as char).is_ascii_whitespace() => self.next(),
                 '(' => Some(token::Token::Lparen),
                 ')' => Some(token::Token::Rparen),
-                symbol if Lexer::is_initial(symbol) =>
-                    Some(token::Token::Atom(self.read_symbol(symbol)?)),
-                _ => Some(token::Token::Illegal)
+                symbol if Lexer::is_initial(symbol) => 
+                    match self.read_symbol(symbol) {
+                        Some(symbol) => Some(token::Token::Atom(symbol)),
+                        None => None,
+                    }
+                illegal => Some(token::Token::Illegal(illegal)),
             },
             None => Some(token::Token::EOF),
         }
@@ -118,6 +131,13 @@ mod tests {
                 input: &String::from("nil"),
                 expected: &[
                     token::Token::Atom(token::Atom::Nil),
+                    token::Token::EOF,
+                ],
+            },
+            Test {
+                input: &String::from("define"),
+                expected: &[
+                    token::Token::Atom(token::Atom::Define),
                     token::Token::EOF,
                 ],
             },

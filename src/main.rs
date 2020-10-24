@@ -1,4 +1,4 @@
-mod lexer;
+mod parser;
 
 use std::env;
 use std::fs::File;
@@ -36,7 +36,7 @@ fn run_prompt() {
 }
 
 fn run(source: &String) {
-    let mut lexer = lexer::Lexer::new(source);
+    let mut lexer = parser::lexer::Lexer::new(source);
     while let Some(token) = lexer.next() {
         print!("{:?}\n", token);
     }

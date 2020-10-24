@@ -103,10 +103,17 @@ mod tests {
         };
 
         let tests = &[
+            // Empty
             Test {
                 input: &String::from(""),
                 expected: &[token::Token::EOF],
             },
+            // Whitespace
+            Test {
+                input: &String::from(" \t\r\n"),
+                expected: &[token::Token::EOF],
+            },
+            // Keyword
             Test {
                 input: &String::from("nil"),
                 expected: &[
@@ -114,28 +121,19 @@ mod tests {
                     token::Token::EOF,
                 ],
             },
+            // Symbol
             Test {
-                input: &String::from("a"),
+                input: &String::from("foo"),
                 expected: &[
-                    token::Token::Atom(token::Atom::Symbol(String::from("a"))),
+                    token::Token::Atom(token::Atom::Symbol(String::from("foo"))),
                     token::Token::EOF,
                 ],
             },
+            // Parentheses
             Test {
                 input: &String::from("()"),
                 expected: &[
                     token::Token::Lparen,
-                    token::Token::Rparen,
-                    token::Token::EOF,
-                ],
-            },
-            Test {
-                input: &String::from("(a b c)"),
-                expected: &[
-                    token::Token::Lparen,
-                    token::Token::Atom(token::Atom::Symbol(String::from("a"))),
-                    token::Token::Atom(token::Atom::Symbol(String::from("b"))),
-                    token::Token::Atom(token::Atom::Symbol(String::from("c"))),
                     token::Token::Rparen,
                     token::Token::EOF,
                 ],
